@@ -1041,6 +1041,9 @@
                 <name>$PROJ_DIR$\..\Src\main.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\Src\rs485.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Src\stm32f1xx_hal_msp.c</name>
             </file>
             <file>

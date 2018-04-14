@@ -41,8 +41,14 @@
 #include "dwt_stm32_delay.h"
 #include "stm32_hal_legacy.h"
 
+#include "rs485.h"
+    
+int sendEvent = 0;    
+
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
+
+
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
@@ -59,30 +65,18 @@ UART_HandleTypeDef huart2;
 
 void SystemClock_Config(void);
 
+
+static void MX_USART1_UART_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_GPIO_Init(void);
 
 
 int test=0;
 int test1=0;
 int timerValue=-1;
 int count = -1;
-
-TIM_HandleTypeDef s_TimerInstance = {
-  .Instance = TIM2 
-};
-
-static void InitializeTimer();
-
-
-/*
-void SysTick_Handler(void)
-{
-  HAL_IncTick();
-  HAL_SYSTICK_IRQHandler();
-}
-
-*/
-
+int countX = -1;
+int serialData = 0;
 
 
 int main(void)
@@ -112,7 +106,8 @@ int main(void)
 
   /* Initialize all configured peripherals */  
   
-  
+  MX_GPIO_Init();
+  MX_USART1_UART_Init();
   MX_TIM2_Init();
   //MX_TIM7_Init();
   //init_variable_SCIA();
@@ -120,10 +115,25 @@ int main(void)
   //if(DWT_Delay_Init())
   //{
     //Error_Handler(); /* Call Error Handler */
+  
   //}
   HAL_TIM_Base_Start_IT(&htim2);
   //HAL_TIM_Base_Start_IT(&htim7);
   int toggle = 0;
+  
+  
+  rs485_Init();
+  
+  
+  if (RequestData() != HAL_OK) 
+  {
+    Error_Handler();
+  }
+
+
+
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); 
+
   
   while(1) {
     
@@ -143,6 +153,18 @@ int main(void)
     if(test >= 20000+6000 && toggle == 1) {
       count ++;
       toggle = -1;
+      
+      
+    }
+    
+    
+    //ProcessCmd();
+    
+    if (sendEvent > 0 && countX == -1) {
+      SendValue();
+      test++;
+      sendEvent = 0;
+      
     }
       
   }
@@ -169,7 +191,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if(htim->Instance==htim2.Instance) 
   {
-    test++;
+    sendEvent = 1;
   }
   
   //test =100;
@@ -208,6 +230,7 @@ static void MX_TIM2_Init(void)
   }
 
 }
+
 
 
 
@@ -266,3 +289,43 @@ void SystemClock_Config(void)
 }
 
 
+
+static void MX_USART1_UART_Init(void)
+{
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 9600; 
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+
+static void MX_GPIO_Init(void)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  
+
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+
+}
