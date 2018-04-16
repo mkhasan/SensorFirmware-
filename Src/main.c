@@ -48,6 +48,8 @@ int sendEvent = 0;
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+ADC_HandleTypeDef myADC;
+ADC_HandleTypeDef g_AdcHandle;
 
 
 TIM_HandleTypeDef htim1;
@@ -69,7 +71,12 @@ void SystemClock_Config(void);
 static void MX_USART1_UART_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_GPIO_Init(void);
+static void MX_ADC1_Init();
 
+void ADC_CAL_Start(void);
+void ADC_Get_Value(void);
+void ADC_Process(void);
+void ConfigureADC();
 
 int test=0;
 int test1=0;
@@ -78,6 +85,14 @@ int count = -1;
 int countX = -1;
 int serialData = 0;
 
+uint8_t nTIM5_ADC = 0;
+uint8_t ucADC_Event = 0;
+
+uint16_t unpADC_Result[1] = {0};  
+uint16_t unpADC_Filtered[1] = {0};
+
+uint32_t g_ADCValue = 0;
+int g_MeasurementNumber = 0;
 
 int main(void)
 {
@@ -108,17 +123,16 @@ int main(void)
   
   MX_GPIO_Init();
   MX_USART1_UART_Init();
-  MX_TIM2_Init();
+  //MX_TIM2_Init();
+  ConfigureADC();
+  //MX_ADC1_Init();
+  //ADC_CAL_Start();
+ 
   //MX_TIM7_Init();
   //init_variable_SCIA();
-  
-  //if(DWT_Delay_Init())
-  //{
-    //Error_Handler(); /* Call Error Handler */
-  
-  //}
-  HAL_TIM_Base_Start_IT(&htim2);
-  //HAL_TIM_Base_Start_IT(&htim7);
+
+
+/*  
   int toggle = 0;
   
   
@@ -130,46 +144,20 @@ int main(void)
     Error_Handler();
   }
 
+*/
 
-
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); 
+  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); 
 
   
-  while(1) {
-    
-    /*
- if (__HAL_TIM_GET_FLAG(&htim2, TIM_FLAG_UPDATE) != RESET)
-        {
-            __HAL_TIM_CLEAR_IT(&htim2, TIM_IT_UPDATE);
-            //HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
-            test1 += 9;
-        }
-
-*/
-    if(test >= 6000 && toggle == 0) {
-      count ++;
-      toggle = 1;;
-    }
-    if(test >= 20000+6000 && toggle == 1) {
-      count ++;
-      toggle = -1;
-      
-      
-    }
-    
-    
-    //ProcessCmd();
-    
-    if (sendEvent > 0 && countX == -1) {
-      SendValue();
-      test++;
-      sendEvent = 0;
-      
-    }
-      
+  HAL_ADC_Start(&g_AdcHandle);
+  for (;;)
+  {
+      if (HAL_ADC_PollForConversion(&g_AdcHandle, 1000000) == HAL_OK)
+      {
+          g_ADCValue = HAL_ADC_GetValue(&g_AdcHandle);
+          g_MeasurementNumber++;
+      }
   }
-
-
   return 0;
 }
 
@@ -191,7 +179,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if(htim->Instance==htim2.Instance) 
   {
-    sendEvent = 1;
+    
+    nTIM5_ADC ++;
   }
   
   //test =100;
@@ -208,7 +197,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 999;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 71;
+  htim2.Init.Period = 35;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -327,5 +316,130 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
+
+#include "stm32f1xx_hal_adc.h"
+static void MX_ADC1_Init(void)
+{
+
+  ADC_ChannelConfTypeDef sConfig;
+
+    /**Common config 
+    */
+  myADC.Instance = ADC1;
+  
+  /*
+  myADC.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  myADC.Init.ContinuousConvMode = DISABLE;
+  myADC.Init.DiscontinuousConvMode = DISABLE;
+  myADC.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  myADC.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  myADC.Init.NbrOfConversion = 1;
+
+  */
+  
+  myADC.Init.ScanConvMode = ENABLE;
+  myADC.Init.ContinuousConvMode = ENABLE;
+  myADC.Init.ExternalTrigConv = 0;
+  myADC.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  myADC.Init.NbrOfConversion = 1;
+  
+  if (HAL_ADC_Init(&myADC) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Regular Channel 
+    */
+  sConfig.Channel = ADC_CHANNEL_1;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_55CYCLES_5;
+  if (HAL_ADC_ConfigChannel(&myADC, &sConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+void ADC_CAL_Start(void) {
+
+  HAL_ADCEx_Calibration_Start(&myADC);
+}
+
+void ADC_Get_Value(void) {
+
+  HAL_ADC_Start_DMA(&myADC, (uint32_t *)unpADC_Result, 1);
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+  ucADC_Event = 1;
+}
+
+void ADC_Process(void) { 
+  
+  unpADC_Filtered[0]=unpADC_Result[0];
+  
+  ucADC_Event = 0;
+}
+
+
+void ConfigureADC()
+{
+    GPIO_InitTypeDef gpioInit;
+ 
+    __GPIOA_CLK_ENABLE();
+      
+    __ADC1_CLK_ENABLE();
+ 
+    gpioInit.Pin = GPIO_PIN_1;
+    gpioInit.Mode = GPIO_MODE_ANALOG;
+    gpioInit.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOA, &gpioInit);
+ 
+    HAL_NVIC_SetPriority(ADC1_2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
+ 
+    ADC_ChannelConfTypeDef adcChannel;
+ 
+    g_AdcHandle.Instance = ADC1;
+ 
+    //g_AdcHandle.Init..ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV2;
+    //g_AdcHandle.Init.Resolution = ADC_RESOLUTION_12B;
+    g_AdcHandle.Init.ScanConvMode = ADC_SCAN_ENABLE;
+    g_AdcHandle.Init.ContinuousConvMode = ENABLE;
+    g_AdcHandle.Init.DiscontinuousConvMode = DISABLE;
+    g_AdcHandle.Init.NbrOfDiscConversion = 1;
+    //g_AdcHandle.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+    g_AdcHandle.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+    g_AdcHandle.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+    g_AdcHandle.Init.NbrOfConversion = 1;
+    //g_AdcHandle.Init.DMAContinuousRequests = ENABLE;
+    //g_AdcHandle.Init.EOCSelection = DISABLE;
+ 
+    //HAL_ADC_Init(&g_AdcHandle);
+    
+  if (HAL_ADC_Init(&g_AdcHandle) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+
+    adcChannel.Channel = ADC_CHANNEL_1;
+    adcChannel.Rank = 1;
+    adcChannel.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;//ADC_SAMPLETIME_55CYCLES_5;
+    
+    
+
+
+ 
+    if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
+}
+
