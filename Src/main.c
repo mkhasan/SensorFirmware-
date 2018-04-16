@@ -43,6 +43,8 @@
 
 #include "rs485.h"
     
+    
+extern tUart data;    
 int sendEvent = 0;    
 
 ADC_HandleTypeDef hadc1;
@@ -94,6 +96,8 @@ uint16_t unpADC_Filtered[1] = {0};
 uint32_t g_ADCValue = 0;
 int g_MeasurementNumber = 0;
 
+int ucReceive_Event = 0;
+
 int main(void)
 {
  
@@ -132,19 +136,16 @@ int main(void)
   //init_variable_SCIA();
 
 
-/*  
+  
   int toggle = 0;
   
   
   rs485_Init();
   
   
-  if (RequestData() != HAL_OK) 
-  {
-    Error_Handler();
-  }
+  RequestData();
 
-*/
+
 
   //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); 
 
@@ -157,6 +158,27 @@ int main(void)
           g_ADCValue = HAL_ADC_GetValue(&g_AdcHandle);
           g_MeasurementNumber++;
       }
+      
+      
+      ProcessCmd();
+      
+      if(ucReceive_Event == 1) {
+        
+        count ++;
+        //ucReceive_Event = 0;
+        
+        if(data.rx_point_tail == data.rx_point_head) {
+        
+          RequestData();
+          ucReceive_Event = 0;
+        }
+        
+        
+          
+      }
+      
+      
+    
   }
   return 0;
 }
@@ -287,7 +309,7 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX;
+  huart1.Init.Mode = UART_MODE_TX_RX;
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart1) != HAL_OK)

@@ -30,7 +30,7 @@ typedef struct{
 }tUart;
 
 void rs485_Init();
-int RequestData();
+void RequestData();
 void ProcessCmd();
 void SendValue();
 
