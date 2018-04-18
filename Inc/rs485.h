@@ -8,8 +8,8 @@
 
 #define RX1BUFFERSIZE 16
 
-#define STX 0x02
-#define ETX 0x03
+#define STX 'X'
+#define ETX 'Y'
 
 #define CMD_LEN 14
 
@@ -31,7 +31,7 @@ typedef struct{
 
 void rs485_Init();
 void RequestData();
-void ProcessCmd();
+void ProcessInput();
 void SendValue();
 
 #endif 

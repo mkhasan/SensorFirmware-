@@ -5,18 +5,22 @@
 tUart data;
 
 extern int countX;
+extern int readyToReceive;
 
-extern int serialData;
+extern int sendData;
 extern UART_HandleTypeDef huart1;
 
 
 
 uint8_t  ucpRx1Buffer  [RX1BUFFERSIZE]; // ??? ??? ??
+uint8_t temp = 0;
 
 extern int ucReceive_Event;
 extern uint32_t g_ADCValue;
 
 int ret = 0;
+
+uint8_t cmdStr[CMD_LEN+1] = "GET VALUE NNNN";
 
 static uint8_t data_element;
 
@@ -29,8 +33,18 @@ static int CheckCmd();
 int requestOkay = 0;
 
 void rs485_Init() {
+  int i;
   data.Flag = 0;
   data.rx_point_head = data.rx_point_tail = data.tx_point_head = data.tx_point_tail = 0;
+
+  for(i=0; i< RBUF_SIZE; i++) {
+    data.RxBuf[i] = 0;
+    data.TxBuf[i] = 0;
+  }
+  
+  for(i=0; i<RX1BUFFERSIZE; i++)
+    ucpRx1Buffer[i] = 'z';
+    
   data.cmdIndex = 0;
 }
 
@@ -49,10 +63,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     for(i=0; i<RX1BUFFERSIZE;i++)
     {
       data.RxBuf[data.rx_point_head++] = ucpRx1Buffer[i];	//?? ???? ??? ??
-      data.rx_point_head %= RBUF_SIZE;                 
+      data.rx_point_head %= RBUF_SIZE;         
+//      if(data.rx_point_head == )
+      temp = ucpRx1Buffer[0];
+      if((temp < 'A' || temp > 'Z') && countX > 0)
+        countX++; 
     }  
     
     ucReceive_Event = 1;
+    readyToReceive = 0;
+    
+   
     
     
     
@@ -60,16 +81,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   }
 }
 
-void RequestData() {
+void    RequestData() {
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
   if((ret = HAL_UART_Receive_IT(&huart1, (uint8_t *)ucpRx1Buffer, RX1BUFFERSIZE)) != HAL_OK) 
     Error_Handler();
+  else
+    readyToReceive = 1;
   
   
     
 }
 
-void ProcessCmd() {
+void ProcessInput() {
 
   
   if(data.rx_point_tail == data.rx_point_head)
@@ -81,7 +104,7 @@ void ProcessCmd() {
   if(data.Flag == 0 && data_element != STX)
     return;
     
-  if(data.Flag==1 && data_element == ETX) {  
+  if(data.Flag==1 && ((data_element == ETX) || (IsValid(data_element) && data.cmdIndex >= CMD_LEN))) {  
        
     if(data.cmdIndex == CMD_LEN)
       requestOkay = 1;
@@ -125,10 +148,25 @@ int CheckID(uint8_t * id) {
  
 
 int IsValid(uint8_t value) {
-  if(value == ' ' || (value >= 'A' && value <= 'Z') || (value >= '0' && value <= '9' ))
+  
+  
+  if(data.cmdIndex == 10)
+    data.cmdIndex = 10;
+  if(cmdStr[data.cmdIndex] == 'N')  
+    return  (value >= '0' && value <= '9');
+    
+  
+  
+  if(!(value == ' ' || (value >= 'A' && value <= 'Z') || (value >= '0' && value <= '9' ))) 
     return 1;
   
-  return 0;
+  if(value != cmdStr[data.cmdIndex])
+    return 0;
+  
+  return 1;
+    
+    
+
 }
 
 int CheckCmd() {
@@ -146,7 +184,7 @@ int CheckCmd() {
 
 void SendValue() {
   
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+  
   
   int i;
   /*
@@ -170,9 +208,16 @@ void SendValue() {
     }
     
   }
+ 
+
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
   
-  
-  if(HAL_UART_Transmit(&huart1, data.TxBuf, 10, 0xFFFF)!= HAL_OK) {
-    serialData --;
+  if(HAL_UART_Transmit(&huart1, data.TxBuf, 10, 0x10)!= HAL_OK) {
+    ret -= 100;
   }
+  else
+
+    sendData ++;
+
+
 }

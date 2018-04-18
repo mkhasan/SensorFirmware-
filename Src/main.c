@@ -47,6 +47,8 @@
 extern tUart data;    
 int sendEvent = 0;    
 
+int readyToReceive = 0;
+
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
@@ -86,6 +88,7 @@ int timerValue=-1;
 int count = -1;
 int countX = -1;
 int serialData = 0;
+int sendData = 0;
 
 uint8_t nTIM5_ADC = 0;
 uint8_t ucADC_Event = 0;
@@ -153,14 +156,16 @@ int main(void)
   HAL_ADC_Start(&g_AdcHandle);
   for (;;)
   {
+     
       if (HAL_ADC_PollForConversion(&g_AdcHandle, 1000000) == HAL_OK)
       {
           g_ADCValue = HAL_ADC_GetValue(&g_AdcHandle);
           g_MeasurementNumber++;
       }
       
+
       
-      ProcessCmd();
+      ProcessInput();
       
       if(ucReceive_Event == 1) {
         
@@ -311,6 +316,8 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.Parity = UART_PARITY_NONE;
   huart1.Init.Mode = UART_MODE_TX_RX;
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  
+  
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
