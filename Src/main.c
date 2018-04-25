@@ -41,9 +41,11 @@
 #include "dwt_stm32_delay.h"
 #include "stm32_hal_legacy.h"
 
+#include "config.h"
 #include "rs485.h"
+    
    
-
+uint32_t g_ADCBuffer[ADC_BUFFER_LENGTH];
     
 extern tUart data;    
 int sendEvent = 0;    
@@ -97,6 +99,7 @@ int sendData = 0;
 int sentBufferEmpty = 1;
 int transferErrorCount = 0;
 int writeErrorCount = 0;
+int readErrorCount = 0;
 
 uint8_t nTIM5_ADC = 0;
 uint8_t ucADC_Event = 0;
@@ -176,7 +179,11 @@ int main(void)
   
    GetAddr();
   
-  HAL_ADC_Start(&g_AdcHandle);
+  //HAL_ADC_Start_IT(&g_AdcHandle); 
+  //HAL_ADC_Start(&g_AdcHandle);
+  
+  if (HAL_ADC_Start_DMA(&g_AdcHandle, g_ADCBuffer, ADC_BUFFER_LENGTH) != HAL_OK)
+    Error_Handler();
   
   
   RequestRecv();
@@ -185,15 +192,17 @@ int main(void)
     //Error_Handler();
   
   
+  
   for (;;)
   {
      
-    
+    /*
       if (HAL_ADC_PollForConversion(&g_AdcHandle, 1000000) == HAL_OK)
       {
           g_ADCValue = HAL_ADC_GetValue(&g_AdcHandle);
           g_MeasurementNumber++;
       }
+*/
 
       
 
@@ -499,7 +508,7 @@ void ConfigureADC()
   //g_AdcHandle.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   g_AdcHandle.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   g_AdcHandle.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  g_AdcHandle.Init.NbrOfConversion = 1;
+  g_AdcHandle.Init.NbrOfConversion = 2;
   //g_AdcHandle.Init.DMAContinuousRequests = ENABLE;
   //g_AdcHandle.Init.EOCSelection = DISABLE;
 
@@ -520,14 +529,15 @@ void ConfigureADC()
     _Error_Handler(__FILE__, __LINE__);
   }
 
-
-
-
-
+  adcChannel.Channel = SENSOR2_CHANNEL;
+  adcChannel.Rank = 2;
+  adcChannel.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;//ADC_SAMPLETIME_55CYCLES_5;
+  
   if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
   {
-      _Error_Handler(__FILE__, __LINE__);
+    _Error_Handler(__FILE__, __LINE__);
   }
+
 }
 
 
@@ -591,7 +601,14 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
   
+  /*
+  if(sentBufferEmpty == 0)
+    writeErrorCount ++;
+  else
+    readErrorCount ++;
+  */
   transferErrorCount ++;
+  //sentBufferEmpty = 1;
   UART_RxAgain(huart);
 }
 
@@ -632,3 +649,10 @@ void USART_ClearITPendingBit(UART_HandleTypeDef* USARTx, uint16_t USART_IT)
   USARTx->Instance->SR = (uint16_t)~itmask;
 }
   
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle) {
+  
+  
+  
+  __NOP();
+}

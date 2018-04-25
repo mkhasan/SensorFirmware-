@@ -38,9 +38,9 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-
+#include "config.h"
     
-    
+extern uint32_t g_ADCBuffer[ADC_BUFFER_LENGTH];    
 //extern DMA_HandleTypeDef myADC;
 extern int countX;
 extern DMA_HandleTypeDef g_DmaHandle;
@@ -94,10 +94,12 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
   GPIO_InitTypeDef GPIO_InitStruct;
   if(hadc->Instance==ADC1)
   {
+    __HAL_RCC_DMA1_CLK_ENABLE();
     __HAL_RCC_ADC1_CLK_ENABLE();
   
-    GPIO_InitStruct.Pin = SENSORS_PIN_SET;
+    GPIO_InitStruct.Pin = SENSOR_PIN_SET;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull= GPIO_NOPULL;
     HAL_GPIO_Init(SENSOR_PORT, &GPIO_InitStruct);
     
     g_DmaHandle.Instance = DMA1_Channel1;
@@ -105,13 +107,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     g_DmaHandle.Init.PeriphInc = DMA_PINC_DISABLE;
     g_DmaHandle.Init.MemInc = DMA_MINC_ENABLE;
     g_DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    g_DmaHandle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    g_DmaHandle.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     g_DmaHandle.Init.Mode = DMA_CIRCULAR;
     g_DmaHandle.Init.Priority = DMA_PRIORITY_HIGH;
-    g_DmaHandle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;         
-    g_DmaHandle.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
-    g_DmaHandle.Init.MemBurst = DMA_MBURST_SINGLE;
-    g_DmaHandle.Init.PeriphBurst = DMA_PBURST_SINGLE; 
+    
 
     if (HAL_DMA_Init(&g_DmaHandle) != HAL_OK)
     {
@@ -120,8 +119,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     
     __HAL_LINKDMA(hadc, DMA_Handle, g_DmaHandle);
 
-    HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);   
-    HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+
+    HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+      
+    HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
     
    
     
@@ -133,11 +134,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 {
 
   
-  GPIO_InitTypeDef GPIO_InitStruct;
+  //GPIO_InitTypeDef GPIO_InitStruct;
   if(hadc->Instance==ADC1)
   {
     __HAL_RCC_ADC1_CLK_DISABLE();
-    HAL_GPIO_DeInit(SENSOR_PORT, SENSORS_PIN_SET);
+    HAL_GPIO_DeInit(SENSOR_PORT, SENSOR_PIN_SET);
     HAL_DMA_DeInit(hadc->DMA_Handle);
     HAL_NVIC_DisableIRQ(DMA1_Channel1_IRQn);
 

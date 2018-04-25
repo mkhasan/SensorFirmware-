@@ -2,6 +2,7 @@
 #include "common.h"
 #include "rs485.h"
 #include "dwt_stm32_delay.h"
+#include "config.h"
 
 tUart data;
 
@@ -25,6 +26,9 @@ uint8_t temp = 0;
 extern int ucReceive_Event;
 extern uint32_t g_ADCValue;
 extern int reqReceived;
+
+extern uint32_t g_ADCBuffer[ADC_BUFFER_LENGTH];    
+int turn = 0;
 
 int ret = 0;
 
@@ -292,6 +296,12 @@ void SendData() {
     }
     */
     
+    if(turn == 0)
+      g_ADCValue = g_ADCBuffer[ADC_BUFFER_LENGTH-2];
+    else 
+      g_ADCValue = g_ADCBuffer[ADC_BUFFER_LENGTH-1];
+    
+    turn = 1-turn;
     
     data.TxBuf[2] = ((g_ADCValue & 0xff00) >> 8);
     data.TxBuf[3] = (g_ADCValue & 0xff);
