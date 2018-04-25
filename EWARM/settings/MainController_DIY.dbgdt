@@ -741,7 +741,7 @@
                     <item>addr3</item>
                     <item>cmdLen</item>
                     <item>huart1</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>
