@@ -39,8 +39,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
-extern DMA_HandleTypeDef myADC;
+    
+    
+//extern DMA_HandleTypeDef myADC;
 extern int countX;
+extern DMA_HandleTypeDef g_DmaHandle;
+
 
 extern void _Error_Handler(char *, int);
 /* USER CODE BEGIN 0 */
@@ -90,15 +94,37 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
   GPIO_InitTypeDef GPIO_InitStruct;
   if(hadc->Instance==ADC1)
   {
-    //__HAL_RCC_ADC1_CLK_ENABLE();
+    __HAL_RCC_ADC1_CLK_ENABLE();
   
-    /**ADC1 GPIO Configuration    
+    GPIO_InitStruct.Pin = SENSORS_PIN_SET;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    HAL_GPIO_Init(SENSOR_PORT, &GPIO_InitStruct);
+    
+    g_DmaHandle.Instance = DMA1_Channel1;
+    g_DmaHandle.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    g_DmaHandle.Init.PeriphInc = DMA_PINC_DISABLE;
+    g_DmaHandle.Init.MemInc = DMA_MINC_ENABLE;
+    g_DmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+    g_DmaHandle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    g_DmaHandle.Init.Mode = DMA_CIRCULAR;
+    g_DmaHandle.Init.Priority = DMA_PRIORITY_HIGH;
+    g_DmaHandle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;         
+    g_DmaHandle.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_HALFFULL;
+    g_DmaHandle.Init.MemBurst = DMA_MBURST_SINGLE;
+    g_DmaHandle.Init.PeriphBurst = DMA_PBURST_SINGLE; 
+
+    if (HAL_DMA_Init(&g_DmaHandle) != HAL_OK)
+    {
+      _Error_Handler(__FILE__, __LINE__);
+    }
+    
+    __HAL_LINKDMA(hadc, DMA_Handle, g_DmaHandle);
+
+    HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);   
+    HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+    
    
-    */
-    //GPIO_InitStruct.Pin = GPIO_PIN_1;
-    //GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    //HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-  /* USER CODE END ADC1_MspInit 1 */
+    
   }
 
 }
@@ -106,28 +132,15 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
 void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 {
 
+  
+  GPIO_InitTypeDef GPIO_InitStruct;
   if(hadc->Instance==ADC1)
   {
-  /* USER CODE BEGIN ADC1_MspDeInit 0 */
-
-  /* USER CODE END ADC1_MspDeInit 0 */
-    /* Peripheral clock disable */
     __HAL_RCC_ADC1_CLK_DISABLE();
-  
-    /**ADC1 GPIO Configuration    
-    PA4     ------> ADC1_IN4
-    PA5     ------> ADC1_IN5 
-    */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4|GPIO_PIN_5);
-
-    /* ADC1 DMA DeInit */
+    HAL_GPIO_DeInit(SENSOR_PORT, SENSORS_PIN_SET);
     HAL_DMA_DeInit(hadc->DMA_Handle);
+    HAL_NVIC_DisableIRQ(DMA1_Channel1_IRQn);
 
-    /* ADC1 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(ADC1_2_IRQn);
-  /* USER CODE BEGIN ADC1_MspDeInit 1 */
-
-  /* USER CODE END ADC1_MspDeInit 1 */
   }
 
 }
