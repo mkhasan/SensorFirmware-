@@ -42,7 +42,8 @@
 #include "stm32_hal_legacy.h"
 
 #include "rs485.h"
-    
+   
+
     
 extern tUart data;    
 int sendEvent = 0;    
@@ -68,6 +69,9 @@ TIM_HandleTypeDef htim8;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
+int transferCallback = 0;
+int readCallback = 0;
+
 
 void SystemClock_Config(void);
 
@@ -86,9 +90,12 @@ int test=0;
 int test1=0;
 int timerValue=-1;
 int count = -1;
-int countX = -1;
+int realCallback = 0;
 int serialData = 0;
 int sendData = 0;
+int sentBufferEmpty = 1;
+int transferErrorCount = 0;
+int writeErrorCount = 0;
 
 uint8_t nTIM5_ADC = 0;
 uint8_t ucADC_Event = 0;
@@ -100,6 +107,14 @@ uint32_t g_ADCValue = 0;
 int g_MeasurementNumber = 0;
 
 int ucReceive_Event = 0;
+int reqReceived = 0;
+int dataReady = 0;
+int prev = 0;
+uint8_t myChar = 0;
+
+extern uint8_t  ucpRx1Buffer  [RX1BUFFERSIZE]; // ??? ??? ??
+
+void USART_ClearITPendingBit(UART_HandleTypeDef* USARTx, uint16_t USART_IT);
 
 int main(void)
 {
@@ -138,52 +153,93 @@ int main(void)
   //MX_TIM7_Init();
   //init_variable_SCIA();
 
+  
+  if(DWT_Delay_Init())
+  {
+    Error_Handler(); 
+  }
+
 
   
   int toggle = 0;
   
   
+  
+  
   rs485_Init();
   
   
-  RequestData();
-
-
-
-  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET); 
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+  __HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
 
   
+   GetAddr();
+  
   HAL_ADC_Start(&g_AdcHandle);
+  
+  
+  RequestRecv();
+  
+  //if((HAL_UART_Receive_IT(&huart1, (uint8_t *)&myChar, 1)) != HAL_OK) 
+    //Error_Handler();
+  
+  
   for (;;)
   {
      
+    
       if (HAL_ADC_PollForConversion(&g_AdcHandle, 1000000) == HAL_OK)
       {
           g_ADCValue = HAL_ADC_GetValue(&g_AdcHandle);
           g_MeasurementNumber++;
       }
-      
 
       
-      ProcessInput();
-      
-      if(ucReceive_Event == 1) {
-        
-        count ++;
-        //ucReceive_Event = 0;
-        
-        if(data.rx_point_tail == data.rx_point_head) {
-        
-          RequestData();
-          ucReceive_Event = 0;
-        }
-        
-        
-          
+
+      if(dataReady == 0) {
+        ProcessInput();     
       }
+      else
+        __NOP();
+      
+      //if(sentBufferEmpty == 1 && prev == 0) {
+        
+        
+      //}
+      if( reqReceived == 1) {
+      
+        if(sentBufferEmpty == 1 && dataReady == 1) {
+          dataReady = 0;
+          
+          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+          __HAL_UART_DISABLE_IT(&huart1, UART_IT_RXNE);
+          SendData();
+          //DWT_Delay_us(100000);
+        } else if (sentBufferEmpty && dataReady == 0 ) {
+          
+          
+          __HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
+          USART_ClearITPendingBit(&huart1, UART_IT_TC);
+          
+          RequestRecv();
+          
+          //__HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+          //__HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
+          
+
+  
+          //RequestRecv();
+        }
+      
+        
+        
+     }
+      
+      prev = sentBufferEmpty; 
       
       
-    
+         
   }
   return 0;
 }
@@ -334,24 +390,38 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   
 
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7 | GPIO_PIN_8, GPIO_PIN_RESET);
 
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  
   GPIO_InitStruct.Pin = GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  
 
   GPIO_InitStruct.Pin = GPIO_PIN_1;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  
+  
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 
 }
 
-#include "stm32f1xx_hal_adc.h"
+//#include "stm32f1xx_hal_adc.h"
 static void MX_ADC1_Init(void)
 {
 
@@ -472,3 +542,69 @@ void ConfigureADC()
     }
 }
 
+
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+  
+  if(huart == &huart1)
+  {
+    
+
+      //sentBufferEmpty = 0;
+      transferCallback ++;
+      
+      sentBufferEmpty = 1;
+      
+    //__HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
+  
+    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+      //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+      
+    
+  }
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+  
+  transferErrorCount ++;
+  UART_RxAgain(huart);
+}
+
+
+void HAL_UART_ErrorCallback1(UART_HandleTypeDef *huart) {
+  
+  if(huart == &huart1)
+  {
+    
+    sentBufferEmpty = 1;
+    transferErrorCount ++;
+    
+    
+    //__HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
+  
+
+    
+  }
+}
+
+
+//USART_ClearITPendingBit(USARTx, USART_IT_TC)
+
+void USART_ClearITPendingBit(UART_HandleTypeDef* USARTx, uint16_t USART_IT)
+{
+  uint16_t bitpos = 0x00, itmask = 0x00;
+  /* Check the parameters */
+  assert_param(IS_USART_ALL_PERIPH(USARTx));
+  assert_param(IS_USART_CLEAR_IT(USART_IT));
+  /* The CTS interrupt is not available for UART4 and UART5 */
+  if (USART_IT == UART_IT_CTS)
+  {
+    assert_param(IS_USART_123_PERIPH(USARTx));
+  }   
+  
+  bitpos = USART_IT >> 0x08;
+  itmask = ((uint16_t)0x01 << (uint16_t)bitpos);
+  USARTx->Instance->SR = (uint16_t)~itmask;
+}
+  

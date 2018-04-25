@@ -11,7 +11,15 @@
 #define STX 'X'
 #define ETX 'Y'
 
-#define CMD_LEN 14
+#define DATA_KEY 0xA5
+
+#define ADDR_PORT GPIOB
+
+#define ADDR0_PIN GPIO_PIN_15
+#define ADDR1_PIN GPIO_PIN_14
+#define ADDR2_PIN GPIO_PIN_13
+#define ADDR3_PIN GPIO_PIN_12
+
 
 typedef struct{
     uint8_t Flag; 
@@ -25,13 +33,15 @@ typedef struct{
     uint8_t RxBuf[RBUF_SIZE]; 
     uint8_t TxBuf[TBUF_SIZE];
     
-    uint8_t CurrentCmd[CMD_LEN];
+    uint8_t CurrentCmd[RX1BUFFERSIZE];          // must not be greater than RX1BUFFERSIZE
     int cmdIndex;
 }tUart;
 
 void rs485_Init();
-void RequestData();
+void RequestRecv();
 void ProcessInput();
-void SendValue();
+void SendData();
+
+void GetAddr();
 
 #endif 

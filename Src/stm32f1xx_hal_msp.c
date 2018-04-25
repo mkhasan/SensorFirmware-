@@ -406,7 +406,8 @@ void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder)
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6|GPIO_PIN_7);
 
-  /* USER CODE BEGIN TIM4_MspDeInit 1 */
+  /* USER CODE BEGIN TIM4_MspDeInit 1 
+  }*/
 
   /* USER CODE END TIM4_MspDeInit 1 */
   }

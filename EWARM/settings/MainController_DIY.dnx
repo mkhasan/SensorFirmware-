@@ -20,7 +20,7 @@
         <stlinkResetStrategy>1</stlinkResetStrategy>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>2018466557</Checksum>
+        <Checksum>114531031</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -117,7 +117,8 @@
         <Bp1>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\SCI.c}.222.1" 0 0 1 "" 0 "" 0</Bp1>
         <Bp2>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\SCI.c}.222.1" 0 0 1 "" 0 "" 0</Bp2>
         <Bp3>_ 0 "EMUL_DATA" "CMD_IR_ON" 0 0 0 0 4294967295</Bp3>
-        <Count>4</Count>
+        <Bp4>_ 0 "EMUL_DATA" "__HAL_UNLOCK" 0 0 0 0 4294967295</Bp4>
+        <Count>5</Count>
     </Breakpoints2>
     <LogFile>
         <LoggingEnabled>_ 0</LoggingEnabled>

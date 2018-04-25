@@ -252,14 +252,16 @@ void TIM3_IRQHandler(void)
 /**
 * @brief This function handles USART1 global interrupt.
 */
+extern void HAL_UART_RxProgressCallback(UART_HandleTypeDef *huart);
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-
+  
+// ++huart1.RxXferCount; //so, it will never stop
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
-
+//--huart1.pRxBuffPtr; //write always the same location
   /* USER CODE END USART1_IRQn 1 */
 }
 
