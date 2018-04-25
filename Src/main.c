@@ -55,6 +55,7 @@ DMA_HandleTypeDef hdma_adc1;
 
 ADC_HandleTypeDef myADC;
 ADC_HandleTypeDef g_AdcHandle;
+DMA_HandleTypeDef g_DmaHandle;
 
 
 TIM_HandleTypeDef htim1;
@@ -421,72 +422,8 @@ static void MX_GPIO_Init(void)
 
 }
 
-//#include "stm32f1xx_hal_adc.h"
-static void MX_ADC1_Init(void)
-{
 
-  ADC_ChannelConfTypeDef sConfig;
-
-    /**Common config 
-    */
-  myADC.Instance = ADC1;
-  
-  /*
-  myADC.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  myADC.Init.ContinuousConvMode = DISABLE;
-  myADC.Init.DiscontinuousConvMode = DISABLE;
-  myADC.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  myADC.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  myADC.Init.NbrOfConversion = 1;
-
-  */
-  
-  myADC.Init.ScanConvMode = ENABLE;
-  myADC.Init.ContinuousConvMode = ENABLE;
-  myADC.Init.ExternalTrigConv = 0;
-  myADC.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  myADC.Init.NbrOfConversion = 1;
-  
-  if (HAL_ADC_Init(&myADC) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-    /**Configure Regular Channel 
-    */
-  sConfig.Channel = ADC_CHANNEL_1;
-  sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_55CYCLES_5;
-  if (HAL_ADC_ConfigChannel(&myADC, &sConfig) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-}
-
-void ADC_CAL_Start(void) {
-
-  HAL_ADCEx_Calibration_Start(&myADC);
-}
-
-void ADC_Get_Value(void) {
-
-  HAL_ADC_Start_DMA(&myADC, (uint32_t *)unpADC_Result, 1);
-}
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-  ucADC_Event = 1;
-}
-
-void ADC_Process(void) { 
-  
-  unpADC_Filtered[0]=unpADC_Result[0];
-  
-  ucADC_Event = 0;
-}
-
-
+/*
 void ConfigureADC()
 {
     GPIO_InitTypeDef gpioInit;
@@ -541,8 +478,95 @@ void ConfigureADC()
         _Error_Handler(__FILE__, __LINE__);
     }
 }
+*/
 
 
+
+void ConfigureADC()
+{
+    
+ 
+  ADC_ChannelConfTypeDef adcChannel;
+
+  g_AdcHandle.Instance = ADC1;
+
+  //g_AdcHandle.Init..ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV2;
+  //g_AdcHandle.Init.Resolution = ADC_RESOLUTION_12B;
+  g_AdcHandle.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  g_AdcHandle.Init.ContinuousConvMode = ENABLE;
+  g_AdcHandle.Init.DiscontinuousConvMode = DISABLE;
+  g_AdcHandle.Init.NbrOfDiscConversion = 1;
+  //g_AdcHandle.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  g_AdcHandle.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  g_AdcHandle.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  g_AdcHandle.Init.NbrOfConversion = 1;
+  //g_AdcHandle.Init.DMAContinuousRequests = ENABLE;
+  //g_AdcHandle.Init.EOCSelection = DISABLE;
+
+  //HAL_ADC_Init(&g_AdcHandle);
+
+  if (HAL_ADC_Init(&g_AdcHandle) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+
+  adcChannel.Channel = SENSOR1_CHANNEL;
+  adcChannel.Rank = 1;
+  adcChannel.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;//ADC_SAMPLETIME_55CYCLES_5;
+  
+  if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+
+
+
+
+  if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
+  {
+      _Error_Handler(__FILE__, __LINE__);
+  }
+}
+
+
+/*
+
+static void MX_ADC1_Init(void)
+{
+
+  ADC_ChannelConfTypeDef sConfig;
+
+  hadc1.Instance = ADC1;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 2;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_55CYCLES_5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sConfig.Channel = ADC_CHANNEL_5;
+  sConfig.Rank = 2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+*/
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
   
