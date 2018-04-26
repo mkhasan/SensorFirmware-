@@ -95,7 +95,7 @@ int timerValue=-1;
 int count = -1;
 int realCallback = 0;
 int serialData = 0;
-int sendData = 0;
+uint32_t sendData = 0;
 int sentBufferEmpty = 1;
 int transferErrorCount = 0;
 int writeErrorCount = 0;
@@ -108,6 +108,7 @@ uint16_t unpADC_Result[1] = {0};
 uint16_t unpADC_Filtered[1] = {0};
 
 uint32_t g_ADCValue = 0;
+uint32_t g_ADCValueDMA[2];
 int g_MeasurementNumber = 0;
 
 int ucReceive_Event = 0;
@@ -115,6 +116,10 @@ int reqReceived = 0;
 int dataReady = 0;
 int prev = 0;
 uint8_t myChar = 0;
+int lastByte = 0;
+
+uint32_t errCode[256];
+
 
 extern uint8_t  ucpRx1Buffer  [RX1BUFFERSIZE]; // ??? ??? ??
 
@@ -158,10 +163,10 @@ int main(void)
   //init_variable_SCIA();
 
   
-  if(DWT_Delay_Init())
-  {
-    Error_Handler(); 
-  }
+  //if(DWT_Delay_Init())
+  //{
+    //Error_Handler(); 
+  //}
 
 
   
@@ -182,8 +187,9 @@ int main(void)
   //HAL_ADC_Start_IT(&g_AdcHandle); 
   //HAL_ADC_Start(&g_AdcHandle);
   
-  if (HAL_ADC_Start_DMA(&g_AdcHandle, g_ADCBuffer, ADC_BUFFER_LENGTH) != HAL_OK)
+   if (HAL_ADC_Start_DMA(&g_AdcHandle, g_ADCBuffer, ADC_BUFFER_LENGTH) != HAL_OK) {
     Error_Handler();
+   }
   
   
   RequestRecv();
@@ -225,7 +231,8 @@ int main(void)
           HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
           __HAL_UART_DISABLE_IT(&huart1, UART_IT_RXNE);
           SendData();
-          //DWT_Delay_us(100000);
+          HAL_Delay(10);
+          
         } else if (sentBufferEmpty && dataReady == 0 ) {
           
           
@@ -248,7 +255,9 @@ int main(void)
       
       prev = sentBufferEmpty; 
       
-      
+    //DWT_Delay_us(100000);
+  
+    
          
   }
   return 0;
@@ -351,11 +360,12 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
+
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
   PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
-    _Error_Handler(__FILE__, __LINE__);
+    //_Error_Handler(__FILE__, __LINE__);
   }
 
     /**Configure the Systick interrupt time 
@@ -376,7 +386,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600; 
+  huart1.Init.BaudRate = 115200; 
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -504,7 +514,7 @@ void ConfigureADC()
   g_AdcHandle.Init.ScanConvMode = ADC_SCAN_ENABLE;
   g_AdcHandle.Init.ContinuousConvMode = ENABLE;
   g_AdcHandle.Init.DiscontinuousConvMode = DISABLE;
-  g_AdcHandle.Init.NbrOfDiscConversion = 1;
+  g_AdcHandle.Init.NbrOfDiscConversion = 0;
   //g_AdcHandle.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   g_AdcHandle.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   g_AdcHandle.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -522,7 +532,7 @@ void ConfigureADC()
 
   adcChannel.Channel = SENSOR1_CHANNEL;
   adcChannel.Rank = 1;
-  adcChannel.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;//ADC_SAMPLETIME_55CYCLES_5;
+  adcChannel.SamplingTime = SENSOR1_SAMPLING_TIME;//ADC_SAMPLETIME_239CYCLES_5;//ADC_SAMPLETIME_55CYCLES_5;
   
   if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
   {
@@ -531,7 +541,7 @@ void ConfigureADC()
 
   adcChannel.Channel = SENSOR2_CHANNEL;
   adcChannel.Rank = 2;
-  adcChannel.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;//ADC_SAMPLETIME_55CYCLES_5;
+  adcChannel.SamplingTime = SENSOR2_SAMPLING_TIME;//ADC_SAMPLETIME_239CYCLES_5;//ADC_SAMPLETIME_55CYCLES_5;
   
   if (HAL_ADC_ConfigChannel(&g_AdcHandle, &adcChannel) != HAL_OK)
   {
@@ -601,14 +611,16 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
   
-  /*
+  
   if(sentBufferEmpty == 0)
     writeErrorCount ++;
   else
     readErrorCount ++;
-  */
+  
+  errCode[transferErrorCount%256] = huart->ErrorCode;
   transferErrorCount ++;
-  //sentBufferEmpty = 1;
+  sentBufferEmpty = 1;
+  
   UART_RxAgain(huart);
 }
 
@@ -624,7 +636,7 @@ void HAL_UART_ErrorCallback1(UART_HandleTypeDef *huart) {
     
     //__HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
   
-
+    
     
   }
 }
@@ -653,6 +665,7 @@ void USART_ClearITPendingBit(UART_HandleTypeDef* USARTx, uint16_t USART_IT)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle) {
   
   
-  
-  __NOP();
+  g_ADCValueDMA[0] = g_ADCBuffer[ADC_BUFFER_LENGTH-2];
+  g_ADCValueDMA[1] = g_ADCBuffer[ADC_BUFFER_LENGTH-1];
+  //__NOP();
 }

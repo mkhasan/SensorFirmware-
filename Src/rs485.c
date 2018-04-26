@@ -15,7 +15,7 @@ extern UART_HandleTypeDef huart1;
 extern int sentBufferEmpty;
 extern int sendEvent;
 extern int writeErrorCount;
-
+extern int lastByte;
 
 
 uint8_t cmaLen = RX1BUFFERSIZE;
@@ -27,7 +27,7 @@ extern int ucReceive_Event;
 extern uint32_t g_ADCValue;
 extern int reqReceived;
 
-extern uint32_t g_ADCBuffer[ADC_BUFFER_LENGTH];    
+extern uint32_t g_ADCValueDMA[2];;//uint32_t g_ADCBuffer[ADC_BUFFER_LENGTH];    
 int turn = 0;
 
 int ret = 0;
@@ -297,14 +297,28 @@ void SendData() {
     */
     
     if(turn == 0)
-      g_ADCValue = g_ADCBuffer[ADC_BUFFER_LENGTH-2];
+      g_ADCValue = g_ADCValueDMA[0];
     else 
-      g_ADCValue = g_ADCBuffer[ADC_BUFFER_LENGTH-1];
+      g_ADCValue = g_ADCValueDMA[1];
     
     turn = 1-turn;
     
-    data.TxBuf[2] = ((g_ADCValue & 0xff00) >> 8);
-    data.TxBuf[3] = (g_ADCValue & 0xff);
+    memcpy(&data.TxBuf[2], sendData, sizeof(sendData));
+    
+    data.TxBuf[2] = sendData & 0xFF;
+    data.TxBuf[3] = (sendData & 0xFF00) >> 8;
+    data.TxBuf[4] = (sendData & 0xFF0000) >> 16;
+    data.TxBuf[5] = (sendData & 0xFF000000) >> 24;
+    
+    int index = 2+sizeof(sendData);
+    
+    data.TxBuf[index] = ((g_ADCValueDMA[0] & 0xff00) >> 8);
+    data.TxBuf[index+1] = (g_ADCValueDMA[0] & 0xff);
+    
+    index += 2;
+    data.TxBuf[index] = ((g_ADCValueDMA[1] & 0xff00) >> 8);
+    data.TxBuf[index+1] = (g_ADCValueDMA[1] & 0xff);
+
     
     
     
@@ -321,20 +335,27 @@ void SendData() {
     
     //DWT_Delay_us(100000);
     
-    __HAL_UART_ENABLE_IT(&huart1, UART_IT_TC);
+   // 
+    
+   
+    sentBufferEmpty = 0;
+    sendData ++;
+    lastByte = -1*WRITE_DATA_LEN;
+
+    //__HAL_UART_ENABLE_IT(&huart1, UART_IT_TC);
     
     if(HAL_UART_Transmit_IT(&huart1, data.TxBuf, 10)!= HAL_OK) {
       writeErrorCount ++;
+      sentBufferEmpty = 1;
+      lastByte = 0;
+      sendData --;
+      
       
     }
-    else {
-      sentBufferEmpty = 0;
-      sendData ++;
-      //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
-    }
  
-
-     //while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
+    
+    
+    //while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
        //; 
     
     //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
