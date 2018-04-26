@@ -125,6 +125,8 @@ extern uint8_t  ucpRx1Buffer  [RX1BUFFERSIZE]; // ??? ??? ??
 
 void USART_ClearITPendingBit(UART_HandleTypeDef* USARTx, uint16_t USART_IT);
 
+uint32_t timeout = 1000000;
+
 int main(void)
 {
  
@@ -198,7 +200,7 @@ int main(void)
     //Error_Handler();
   
   
-  
+  uint32_t tickstart = 0U;
   for (;;)
   {
      
@@ -208,7 +210,13 @@ int main(void)
           g_ADCValue = HAL_ADC_GetValue(&g_AdcHandle);
           g_MeasurementNumber++;
       }
-*/
+
+    */
+      
+    
+      
+    
+
 
       
 
@@ -222,7 +230,7 @@ int main(void)
         
         
       //}
-      if( reqReceived == 1) {
+      if( reqReceived == 1 || 1) {
       
         if(sentBufferEmpty == 1 && dataReady == 1) {
           dataReady = 0;
@@ -386,7 +394,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200; 
+  huart1.Init.BaudRate = 9600; 
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -621,25 +629,10 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
   transferErrorCount ++;
   sentBufferEmpty = 1;
   
-  UART_RxAgain(huart);
+  //UART_RxAgain(huart);
 }
 
 
-void HAL_UART_ErrorCallback1(UART_HandleTypeDef *huart) {
-  
-  if(huart == &huart1)
-  {
-    
-    sentBufferEmpty = 1;
-    transferErrorCount ++;
-    
-    
-    //__HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
-  
-    
-    
-  }
-}
 
 
 //USART_ClearITPendingBit(USARTx, USART_IT_TC)
@@ -664,8 +657,12 @@ void USART_ClearITPendingBit(UART_HandleTypeDef* USARTx, uint16_t USART_IT)
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* AdcHandle) {
   
-  
-  g_ADCValueDMA[0] = g_ADCBuffer[ADC_BUFFER_LENGTH-2];
-  g_ADCValueDMA[1] = g_ADCBuffer[ADC_BUFFER_LENGTH-1];
+  uint32_t sum[2]={0, 0};
+  int i;
+  for(i=0; i<ADC_BUFFER_LENGTH; i++) {
+    sum[i%2] += g_ADCBuffer[i];
+  }
+  g_ADCValueDMA[0] = sum[0]*2/ADC_BUFFER_LENGTH;
+  g_ADCValueDMA[1] = sum[1]*2/ADC_BUFFER_LENGTH;
   //__NOP();
 }

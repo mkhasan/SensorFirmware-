@@ -125,6 +125,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 */
 
+extern int transferErrorCount;
+extern int writeErrorCount;
+extern int readErrorCount;
+extern uint32_t errCode[256];
+
 void  RequestRecv() {
   
   
@@ -141,8 +146,21 @@ void  RequestRecv() {
     
     //if((ret = HAL_UART_Receive_IT(&huart1, (uint8_t *)ucpRx1Buffer, RX1BUFFERSIZE)) != HAL_OK) 
     
-    UART_RxAgain(&huart1);
-    readyToReceive = 1;
+    uint8_t localData;
+    int recvRet;
+    if((recvRet=HAL_UART_Receive(&huart1,&localData,1, 0xFF)) == HAL_OK) {
+      data.RxBuf[data.rx_point_head++] = localData;
+      data.rx_point_head %= RBUF_SIZE;
+    }
+    else {
+      errCode[transferErrorCount%256] = recvRet;
+      transferErrorCount ++;
+      readErrorCount ++;
+    }
+      
+       
+    //UART_RxAgain(&huart1);
+    
   
   
   
