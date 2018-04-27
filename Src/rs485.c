@@ -1,5 +1,5 @@
 
-#include "common.h"
+
 #include "rs485.h"
 #include "dwt_stm32_delay.h"
 #include "config.h"
@@ -36,7 +36,7 @@ static int idLen=0;
 
 GPIO_PinState state;
 
-int addr0, addr1, addr2, addr3;
+int addr[ADDR_PIN_COUNT];
 
 uint32_t myAddr = 1;
 
@@ -220,7 +220,7 @@ void ProcessInput() {
 int CheckID(uint8_t * idStr) {
   
   
-  /*
+  
   int i;
   uint32_t id = 0;
   uint32_t factor = 1;
@@ -241,7 +241,7 @@ int CheckID(uint8_t * idStr) {
    
   return (myAddr == id);
 
-  */
+  
   return 1;
 }
 
@@ -388,12 +388,21 @@ void GetAddr() {
   
   //state = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);
   
-  addr0 = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR0_PIN) == GPIO_PIN_SET);
-  addr1 = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR1_PIN) == GPIO_PIN_SET);
-  addr2 = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR2_PIN) == GPIO_PIN_SET);
-  addr3 = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR3_PIN) == GPIO_PIN_SET);
+  addr[0] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_0) == GPIO_PIN_SET);
+  addr[1] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_1) == GPIO_PIN_SET);
+  addr[2] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_2) == GPIO_PIN_SET);
+  addr[3] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_3) == GPIO_PIN_SET);
   
-  myAddr = addr3 << 3 | addr2 << 2 | addr1 << 1 | addr0;
+  addr[4] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_4) == GPIO_PIN_SET);
+  addr[5] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_5) == GPIO_PIN_SET);
+  addr[6] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_6) == GPIO_PIN_SET);
+  addr[7] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_7) == GPIO_PIN_SET);
+  
+  int i;
+  
+  for(i=0, myAddr=0; i<ADDR_PIN_COUNT; i++)
+    myAddr |= (addr[i] << i);
+   
   
 }
 

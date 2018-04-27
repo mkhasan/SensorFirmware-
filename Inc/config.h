@@ -29,4 +29,24 @@
 #define WRITE_DATA_LEN 2
 
 #define ADC_BUFFER_LENGTH 256
+
+#define ADDR_PORT GPIOB
+
+#define ADDR_PIN_7 GPIO_PIN_6
+#define ADDR_PIN_6 GPIO_PIN_7
+#define ADDR_PIN_5 GPIO_PIN_10
+#define ADDR_PIN_4 GPIO_PIN_11
+#define ADDR_PIN_3 GPIO_PIN_12
+#define ADDR_PIN_2 GPIO_PIN_13
+#define ADDR_PIN_1 GPIO_PIN_14
+#define ADDR_PIN_0 GPIO_PIN_15
+
+#define ADDR_PIN_COUNT 8
+
+
+
+void _Error_Handler(char *, int);
+
+#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+
 #endif

@@ -13,12 +13,6 @@
 
 #define DATA_KEY 0xA5
 
-#define ADDR_PORT GPIOB
-
-#define ADDR0_PIN GPIO_PIN_15
-#define ADDR1_PIN GPIO_PIN_14
-#define ADDR2_PIN GPIO_PIN_13
-#define ADDR3_PIN GPIO_PIN_12
 
 
 typedef struct{
