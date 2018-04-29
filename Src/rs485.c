@@ -30,7 +30,7 @@ extern int reqReceived;
 extern uint32_t g_ADCValueDMA[2];;//uint32_t g_ADCBuffer[ADC_BUFFER_LENGTH];    
 int turn = 0;
 
-int ret = 0;
+extern int ret;
 
 static int idLen=0;
 

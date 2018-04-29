@@ -118,6 +118,7 @@ int prev = 0;
 uint8_t myChar = 0;
 int lastByte = 0;
 
+int ret = 0;
 uint32_t errCode[256];
 
 
@@ -180,7 +181,7 @@ int main(void)
   rs485_Init();
   
   
-  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+  __HAL_UART_DISABLE_IT(&huart1, UART_IT_RXNE);
   __HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
 
   
@@ -189,7 +190,7 @@ int main(void)
   //HAL_ADC_Start_IT(&g_AdcHandle); 
   //HAL_ADC_Start(&g_AdcHandle);
   
-   if (HAL_ADC_Start_DMA(&g_AdcHandle, g_ADCBuffer, ADC_BUFFER_LENGTH) != HAL_OK) {
+   if ((ret=HAL_ADC_Start_DMA(&g_AdcHandle, g_ADCBuffer, ADC_BUFFER_LENGTH)) != HAL_OK) {
     Error_Handler();
    }
   
@@ -288,7 +289,7 @@ static void MX_TIM2_Init(void)
   htim2.Init.Period = 35;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  if ((ret=HAL_TIM_Base_Init(&htim2)) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -327,7 +328,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  if ((ret=HAL_RCC_OscConfig(&RCC_OscInitStruct)) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -341,7 +342,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if ((ret=HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2)) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -381,7 +382,7 @@ static void MX_USART1_UART_Init(void)
   
   
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
+  if ((ret=HAL_UART_Init(&huart1)) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
