@@ -392,11 +392,12 @@ void GetAddr() {
   addr[1] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_1) == GPIO_PIN_SET);
   addr[2] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_2) == GPIO_PIN_SET);
   addr[3] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_3) == GPIO_PIN_SET);
-  
+  /*
   addr[4] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_4) == GPIO_PIN_SET);
   addr[5] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_5) == GPIO_PIN_SET);
   addr[6] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_6) == GPIO_PIN_SET);
   addr[7] = (HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_7) == GPIO_PIN_SET);
+*/
   
   int i;
   

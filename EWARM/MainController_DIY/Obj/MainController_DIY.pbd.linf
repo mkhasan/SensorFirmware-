@@ -2,6 +2,9 @@
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\dwt_stm32_delay.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\main.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\rs485.pbi
+F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_msp.pbi
+F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_it.pbi
+F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\system_stm32f1xx.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_adc.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_adc_ex.pbi
@@ -11,12 +14,9 @@ F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm3
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_flash_ex.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_gpio.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_gpio_ex.pbi
-F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_msp.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_pwr.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_rcc.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_rcc_ex.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_tim.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_tim_ex.pbi
 F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_hal_uart.pbi
-F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\stm32f1xx_it.pbi
-F:\KisWire\sensors\TemperatureSensor\_Firmware\EWARM\MainController_DIY\Obj\system_stm32f1xx.pbi

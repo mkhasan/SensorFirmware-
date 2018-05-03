@@ -240,7 +240,12 @@ int main(void)
         
      }
       
-      prev = sentBufferEmpty; 
+     prev = sentBufferEmpty; 
+     
+     if(HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_3) == GPIO_PIN_SET)
+       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+     else
+       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
       
     
   
@@ -420,10 +425,20 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
   
   
-  GPIO_InitStruct.Pin = ADDR_PIN_7 | ADDR_PIN_6 | ADDR_PIN_5 | ADDR_PIN_4 | ADDR_PIN_3 | ADDR_PIN_2 | ADDR_PIN_1 | ADDR_PIN_0;
+  GPIO_InitStruct.Pin = ADDR_PIN_3 | ADDR_PIN_2 | ADDR_PIN_1 | ADDR_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(ADDR_PORT, &GPIO_InitStruct);
+  
+  ///////////// for LED /////////////
+  
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  
+  ///////////////////////////////////
 
 
 }
