@@ -342,7 +342,7 @@ void SendData() {
     data.TxBuf[2] = sendData & 0xFF;
     data.TxBuf[3] = (sendData & 0xFF00) >> 8;
     data.TxBuf[4] = (sendData & 0xFF0000) >> 16;
-    data.TxBuf[5] = (sendData & 0xFF000000) >> 24;
+    data.TxBuf[5] = myAddr;//(sendData & 0xFF000000) >> 24;
     
     int index = 2+sizeof(sendData);
     
