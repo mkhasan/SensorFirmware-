@@ -44,6 +44,10 @@
 #define ADDR_PIN_COUNT 4
 
 
+#define RS485_ENABLE_PORT GPIOA
+#define RS485_RE_PIN GPIO_PIN_8
+#define RS485_DE_PIN GPIO_PIN_11
+
 
 void _Error_Handler(char *, int);
 

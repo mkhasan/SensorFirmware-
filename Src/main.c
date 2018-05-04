@@ -216,8 +216,8 @@ int main(void)
         if(sentBufferEmpty == 1 && dataReady == 1) {
           dataReady = 0;
           
-          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-          HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+          HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_DE_PIN, GPIO_PIN_SET);
+          HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_RE_PIN, GPIO_PIN_SET);
           __HAL_UART_DISABLE_IT(&huart1, UART_IT_RXNE);
           SendData();
           HAL_Delay(10);
@@ -407,17 +407,17 @@ static void MX_GPIO_Init(void)
 
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7 | GPIO_PIN_8, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, RS485_RE_PIN | RS485_DE_PIN, GPIO_PIN_RESET);
 
-  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  GPIO_InitStruct.Pin = RS485_RE_PIN;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(RS485_ENABLE_PORT, &GPIO_InitStruct);
   
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Pin = RS485_DE_PIN;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(RS485_ENABLE_PORT, &GPIO_InitStruct);
   
 
   GPIO_InitStruct.Pin = GPIO_PIN_1;
@@ -603,9 +603,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
       
     //__HAL_UART_DISABLE_IT(&huart1, UART_IT_TC);
   
-    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
-    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
-      //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
       
     
   }

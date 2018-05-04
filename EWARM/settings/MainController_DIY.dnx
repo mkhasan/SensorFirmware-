@@ -20,7 +20,7 @@
         <stlinkResetStrategy>1</stlinkResetStrategy>
     </StLinkDriver>
     <DebugChecksum>
-        <Checksum>2783816109</Checksum>
+        <Checksum>1544787701</Checksum>
     </DebugChecksum>
     <Exceptions>
         <StopOnUncaught>_ 0</StopOnUncaught>
@@ -123,7 +123,7 @@
         <Bp7>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.541.5" 0 0 1 "" 0 "" 0</Bp7>
         <Bp8>_ 0 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.550.5" 0 0 1 "" 0 "" 0</Bp8>
         <Bp9>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.194.5" 0 0 1 "" 0 "" 0</Bp9>
-        <Bp10>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.622.3" 0 0 1 "" 0 "" 0</Bp10>
+        <Bp10>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.624.1" 0 0 1 "" 0 "" 0</Bp10>
         <Bp11>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.338.5" 0 0 1 "" 0 "" 0</Bp11>
         <Bp12>_ 1 "EMUL_CODE" "{$PROJ_DIR$\..\Src\main.c}.392.5" 0 0 1 "" 0 "" 0</Bp12>
         <Count>13</Count>

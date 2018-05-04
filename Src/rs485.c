@@ -133,8 +133,8 @@ extern uint32_t errCode[256];
 void  RequestRecv() {
   
   
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_RE_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_DE_PIN, GPIO_PIN_RESET);
 
     
     //while(HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
@@ -348,8 +348,8 @@ void SendData() {
     
     //__HAL_UART_DISABLE_IT(&huart1, UART_IT_TXE);
     
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_DE_PIN, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_RE_PIN, GPIO_PIN_SET);
     
     //DWT_Delay_us(100000);
     
@@ -376,8 +376,6 @@ void SendData() {
     //while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY)
        //; 
     
-    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
-    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 
   
   }
