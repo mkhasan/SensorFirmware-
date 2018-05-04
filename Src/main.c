@@ -48,6 +48,8 @@
 uint32_t g_ADCBuffer[ADC_BUFFER_LENGTH];
     
 extern tUart data;    
+extern uint32_t myAddr;
+
 int sendEvent = 0;    
 
 int readyToReceive = 0;
@@ -92,7 +94,7 @@ void ConfigureADC();
 int test=0;
 int test1=0;
 int timerValue=-1;
-int count = -1;
+static int count = 0;
 int realCallback = 0;
 int serialData = 0;
 uint32_t sendData = 0;
@@ -114,9 +116,11 @@ int g_MeasurementNumber = 0;
 int ucReceive_Event = 0;
 int reqReceived = 0;
 int dataReady = 0;
-int prev = 0;
+static int led = 0;
 uint8_t myChar = 0;
 int lastByte = 0;
+
+
 
 int ret = 0;
 uint32_t errCode[256];
@@ -235,17 +239,33 @@ int main(void)
   
     
         }
+           
+      }
       
-        
-        
-     }
       
-     prev = sentBufferEmpty; 
+      if(myAddr & 0x8)  {          // msb of addr is set
+        if(HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_3) == GPIO_PIN_SET) {
+          HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+          
+        }
+        else {
+          HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+         
+        }
+      }
+      else {
+        if(HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_3) == GPIO_PIN_SET) {
+          HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
+          
+        }
+        else {
+          HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+         
+        }
+        
+      }
      
-     if(HAL_GPIO_ReadPin(ADDR_PORT, ADDR_PIN_3) == GPIO_PIN_SET)
-       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
-     else
-       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+     count ++;
       
     
   
