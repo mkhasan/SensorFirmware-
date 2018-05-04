@@ -43,6 +43,7 @@
 
 #include "config.h"
 #include "rs485.h"
+#include "crc.h"
     
    
 uint32_t g_ADCBuffer[ADC_BUFFER_LENGTH];
@@ -142,6 +143,11 @@ int main(void)
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  
+  if (crcInit(POLYNOM4, POLYNOM8) != 0)
+    Error_Handler();
+  
+  
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -150,6 +156,8 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
+  
+  
   
   //InitializeTimer();
 

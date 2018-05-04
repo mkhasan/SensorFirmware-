@@ -1198,6 +1198,9 @@
         <group>
             <name>User</name>
             <file>
+                <name>$PROJ_DIR$\..\Src\crc.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Src\dwt_stm32_delay.c</name>
             </file>
             <file>

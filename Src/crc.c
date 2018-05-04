@@ -12,9 +12,9 @@ uint32_t polynom8 = 0;
 
 static int GetDegree(uint32_t polynom);
 
-int crcInit(uint32_t _plynom4, uint32_t _polynom8) {
+int crcInit(uint32_t _polynom4, uint32_t _polynom8) {
   
-  polynom4 = _polynom8;
+  polynom4 = _polynom4;
   polynom8 = _polynom8;
   
   deg4 =  GetDegree(polynom4);
@@ -39,7 +39,7 @@ uint8_t crcCalc(uint32_t const message, int const msgLen, uint32_t polynom)
     const uint32_t mask = 1 << (msgLen-1);
     //const int maxIt = msgLen;
 
-    printf("poly is %x \n", polynom);
+    //printf("poly is %x \n", polynom);
     /*
      * Initially, the dividend is the remainder.
      *
@@ -68,7 +68,7 @@ uint8_t crcCalc(uint32_t const message, int const msgLen, uint32_t polynom)
          * Shift the next bit of the message into the remainder.
          */
         remainder = (remainder << 1);
-        printf("it %d: remainder is %x \n", msgLen-bit, remainder);
+        //printf("it %d: remainder is %x \n", msgLen-bit, remainder);
     }
 
     /*

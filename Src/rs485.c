@@ -3,8 +3,11 @@
 #include "rs485.h"
 #include "dwt_stm32_delay.h"
 #include "config.h"
+#include "crc.h"
 
 tUart data;
+uint32_t addrData;
+uint8_t addrCrc;
 
 extern int readCallback;
 extern int readyToReceive;
@@ -217,12 +220,13 @@ void ProcessInput() {
     
 
 
-int CheckID(uint8_t * idStr) {
+int CheckID(uint8_t * idStr) {          // 1 means valid
   
   
   
-  int i;
-  uint32_t id = 0;
+uint32_t id = 0;
+  
+  /*
   uint32_t factor = 1;
   for(int i=0; i<idLen-1; i++)
     factor *= 10;
@@ -236,30 +240,42 @@ int CheckID(uint8_t * idStr) {
            
   }
 
+  */
+  
+  
+  if(idStr[2] != '0')
+    return 0;
+  addrData = idStr[0];
+  
+  addrCrc = crcCalc(addrData, 8, POLYNOM4);
+  if (addrCrc != idStr[1])
+    return 0;
+  
+  return (idStr[0] == myAddr);
+  
+  
+
+  
   
   
    
-  return (myAddr == id);
-
-  
-  return 1;
 }
 
 
  
 
-int IsValid(uint8_t value) {
+int IsValid(uint8_t value) {           // 1 means valid 
   
   
   if(data.cmdIndex == 10)
     data.cmdIndex = 10;
   if(cmdStr[data.cmdIndex] == 'N')  
-    return  (value >= '0' && value <= '9');
+    return  1;
     
   
   
   if(!(value == ' ' || (value >= 'A' && value <= 'Z') || (value >= '0' && value <= '9' ))) 
-    return 1;
+    return 0;
   
   if(value != cmdStr[data.cmdIndex])
     return 0;
