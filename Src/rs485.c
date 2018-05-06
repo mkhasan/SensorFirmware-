@@ -7,7 +7,8 @@
 
 tUart data;
 uint32_t addrData;
-uint8_t addrCrc;
+uint8_t addrCrc;                // from input data
+uint8_t dataCrc;                // from output data
 
 extern int readCallback;
 extern int readyToReceive;
@@ -20,11 +21,12 @@ extern int sendEvent;
 extern int writeErrorCount;
 extern int lastByte;
 
+uint32_t temp;
 
 uint8_t cmaLen = RX1BUFFERSIZE;
 
 uint8_t  ucpRx1Buffer  [RX1BUFFERSIZE]; // ??? ??? ??
-uint8_t temp = 0;
+
 
 extern int ucReceive_Event;
 extern uint32_t g_ADCValue;
@@ -302,7 +304,7 @@ int CheckCmd() {
 void SendData() {
   
   
-  
+  uint8_t *p;
   int i;
   /*
   for(i=0; i<10; i++)
@@ -342,8 +344,22 @@ void SendData() {
     data.TxBuf[2] = sendData & 0xFF;
     data.TxBuf[3] = (sendData & 0xFF00) >> 8;
     data.TxBuf[4] = (sendData & 0xFF0000) >> 16;
-    data.TxBuf[5] = myAddr;//(sendData & 0xFF000000) >> 24;
     
+    temp = 0;
+    p = (uint8_t *) &temp;
+    uint8_t tempAddr = (myAddr & 0xFF);
+    temp |= (tempAddr << 24);
+    temp |= ((g_ADCValueDMA[0] & 0xFFF) << 12);
+    temp |= (g_ADCValueDMA[1] & 0xFFF);
+    
+    int index = 2+3;            // 3 for sendData
+    //dataCrc = 
+    for (i=0; i<4; i++)
+      data.TxBuf[index+i] = p[i];
+      
+    //data.TxBuf[5] = myAddr;//(sendData & 0xFF000000) >> 24;
+    
+    /*
     int index = 2+sizeof(sendData);
     
     data.TxBuf[index] = ((g_ADCValueDMA[0] & 0xff00) >> 8);
@@ -352,6 +368,10 @@ void SendData() {
     index += 2;
     data.TxBuf[index] = ((g_ADCValueDMA[1] & 0xff00) >> 8);
     data.TxBuf[index+1] = (g_ADCValueDMA[1] & 0xff);
+    */
+    
+    dataCrc = crcCalc(temp, 32, POLYNOM8);
+    data.TxBuf[9] = dataCrc;
 
     
     

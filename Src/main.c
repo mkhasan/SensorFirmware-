@@ -228,11 +228,12 @@ int main(void)
         if(sentBufferEmpty == 1 && dataReady == 1) {
           dataReady = 0;
           
-          HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_DE_PIN, GPIO_PIN_SET);
-          HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_RE_PIN, GPIO_PIN_SET);
+          //HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_DE_PIN, GPIO_PIN_SET);
+          //HAL_GPIO_WritePin(RS485_ENABLE_PORT, RS485_RE_PIN, GPIO_PIN_SET);
           __HAL_UART_DISABLE_IT(&huart1, UART_IT_RXNE);
+          HAL_Delay(100);
           SendData();
-          HAL_Delay(10);
+//          HAL_Delay(10);
           
         } else if (sentBufferEmpty && dataReady == 0 ) {
           
@@ -241,11 +242,6 @@ int main(void)
           USART_ClearITPendingBit(&huart1, UART_IT_TC);
           
           RequestRecv();
-          
-          
-
-  
-    
         }
            
       }
